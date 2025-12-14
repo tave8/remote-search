@@ -4,7 +4,7 @@
 // ]
 
 class RemoteSearch {
-  constructor({ inputSelector, listSelector, minLen, absoluteUrl, relativeUrl, onClickItem, onGetResult, itemLabel, urlQueryParams, inputPlaceholder }) {
+  constructor({ inputSelector, listSelector, minLen=3, absoluteUrl, relativeUrl, onClickItem, onGetResult, getItemsFromResult, itemLabel, urlQueryParams={}, inputPlaceholder }) {
     this.inputSelector = inputSelector;
     this.listSelector = listSelector;
     this.minLen = minLen;
@@ -15,6 +15,7 @@ class RemoteSearch {
     this.itemLabel = itemLabel;
     this.urlQueryParams = urlQueryParams;
     this.inputPlaceholder = inputPlaceholder;
+    this.getItemsFromResult = getItemsFromResult
 
     const self = this;
 
@@ -60,15 +61,24 @@ class RemoteSearch {
     }
   }
 
+
   /**
    * Use this method to start the search mechanism.
    * The assumption is that this method is called when the user has stopped typing.
    */
   async search(inputValue, moreInfo) {
+    // check that the input value length is greater or equal the min length
+    if (inputValue.length < this.minLen) {
+      return 
+    }
+    
     // console.log(inputValue)
     // console.log(this);
-    const json = await this.getRequest()
-    console.log(json)
+    const responseData = await this.getRequest()
+    
+    const items = this.getItemsFromResult(responseData)
+
+    this.createList(items, responseData)
   }
 
   async getRequest() {
@@ -98,9 +108,41 @@ class RemoteSearch {
     return data;
   }
 
-  createList() {}
+  createList(items, responseData) {
+    const self = this
+    // empty list always 
 
-  createListItem() {}
+    // there are no items
+    if (items.length == 0) {
+    }
+    // there's more than one item
+    else {
+      items.forEach(item => {
+        // the label of each item. this will be shown
+        // to the user in the UI list item
+        const label = item[this.itemLabel]
+        const listItemEl = self.createListItem(label, item)
+        // .appendChild(listItemEl)
+        console.log(listItemEl)
+      })
+    }
+  }
+
+  createListItem(label, item) {
+    const listItemEl = document.createElement("li")
+    // the list item text
+    listItemEl.innerText = label
+    // when user clicks list item
+    listItemEl.addEventListener("click", () => {
+      // empty list 
+
+      // set the value of the search input as the result item clicked
+      document.querySelector(self.inputSelector).value = label
+      // run the user-provided callback when clicking the item
+      self.onClickItem(item)
+    })
+    return listItemEl
+  }
 
   static paramsToQueryStr(params) {
     return new URLSearchParams(params).toString();
@@ -121,6 +163,14 @@ new RemoteSearch({
   // when user clicks the individual result item
   onClickItem: async (id, moreInfo) => {
     console.log(id, moreInfo);
+  },
+  // when the result is received from the server, return the actual items (list of objects) 
+  getItemsFromResult: (responseData) => {
+    // in this case, the items are found exactly in the json itself, 
+    // so there's no need to search any further 
+    // if instead the items are found in the json.items property, you must 
+    // specify that here with return json.items
+    return responseData
   },
   // when the results arrive to the client, from the server
   onGetResult: async (respBody) => {

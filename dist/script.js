@@ -258,6 +258,10 @@ class RemoteSearch2 {
 
 
 
+
+
+
+
 async function remote_get_dipendenti(id_committente) {
   const qstr = _to_qstr({
     id_committente,
