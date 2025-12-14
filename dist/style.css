@@ -1,13 +1,20 @@
+main {
+    height: 80vh;
+}
+
 .remote-search-box {
   display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  /* padding: 10px;  */
+  /* margin: 10px; */
 }
 
 .remote-search-box > .list-box {
   max-height: 200px;
   overflow-y: auto;
   position: absolute;
-  left: 50px;
-  top: 50px;
   border: 1px solid lightgray;
   z-index: 9999;
 }

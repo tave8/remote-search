@@ -56,11 +56,13 @@ class RemoteSearch {
       }
 
       self.createListContainerAndList();
-      self.positionList();
 
       // set more instance properties
       self.input = inputEl;
-      self.list = inputEl.closest(".remote-search-box").querySelector(".list-box > ul");
+      self.listContainer = inputEl.closest(".remote-search-box").querySelector(".list-box")
+      self.list = self.listContainer.querySelector("ul");
+
+      self.positionListUnderInput();
 
       // when the user types
       self.input.addEventListener("keydown", (ev) => {
@@ -203,18 +205,16 @@ class RemoteSearch {
     searchContainerEl.appendChild(listContainerEl);
   }
 
-  positionList() {
-    const inputEl = document.querySelector(this.inputSelector);
-    // console.log(this)
-    // const inputCoord = inputEl.getBoundingClientRect();
-    // console.log(inputCoord)
-    //     <div class="list-box">
-    //   <ul>
-    //     <li>list item 1</li>
-    //     <li>list item 2</li>
-    //     <li>list item 3</li>
-    //   </ul>
-    // </div>
+  positionListUnderInput() {
+    // compute search input coordinates
+    const inputRect = this.input.getBoundingClientRect();
+
+    // console.log(inputRect)
+
+    // position search result underneath search input
+    this.listContainer.style.position = "absolute";
+    this.listContainer.style.left = `${inputRect.left + window.scrollX}px`;
+    this.listContainer.style.top = `${inputRect.bottom + window.scrollY}px`;
   }
 
   emptyList() {
