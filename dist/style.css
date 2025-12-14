@@ -1,27 +1,27 @@
 .remote-search-box {
-    display: flex;
+  display: flex;
 }
 
 .remote-search-box > .list-box {
-
+  max-height: 200px;
+  overflow-y: auto;
+  position: absolute;
+  left: 50px;
+  top: 50px;
+  border: 1px solid lightgray;
+  z-index: 9999;
 }
 
 .remote-search-box > .list-box > ul {
-    max-height: 200px;
-    overflow-y: auto;
-    position: absolute;
-    border: 1px solid lightgray;
-    z-index: 9999;
-    list-style-type: none;
-    padding: 0;
+  list-style-type: none;
+  padding: 0;
 }
 
 .remote-search-box > .list-box > ul > li {
-    padding: .5rem;
-    cursor: pointer;
+  padding: 0.5rem;
+  cursor: pointer;
 }
 
 .remote-search-box > .list-box > ul > li:hover {
-    background-color: lightblue;
+  background-color: lightblue;
 }
-

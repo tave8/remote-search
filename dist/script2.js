@@ -60,6 +60,12 @@ class RemoteSearch {
       self.input = inputEl;
       self.list = inputEl.closest(".remote-search-box").querySelector(".list-box > ul");
 
+      // when the user types
+      self.input.addEventListener("keydown", (ev) => {
+        self.emptyList()
+      })
+
+      // fire the search method after delay from when user stops typing
       new TypingDelayer(
         {
           inputSelector: self.inputSelector,
@@ -86,6 +92,9 @@ class RemoteSearch {
    * The assumption is that this method is called when the user has stopped typing.
    */
   async search(inputValue, moreInfo) {
+    // empty list always
+    // this.emptyList()
+
     // check that the input value length is greater or equal the min length
     if (inputValue.length < this.minLen) {
       return;
@@ -129,8 +138,6 @@ class RemoteSearch {
 
   refreshList(items, responseData) {
     const self = this;
-    // empty list always
-    this.list.innerHTML = ""
 
     // there are no items
     if (items.length == 0) {
@@ -190,6 +197,10 @@ class RemoteSearch {
     //     <li>list item 3</li>
     //   </ul>
     // </div>
+  }
+
+  emptyList() {
+    this.list.innerHTML = ""
   }
 
   static paramsToQueryStr(params) {
