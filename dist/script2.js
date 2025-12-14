@@ -4,9 +4,8 @@
 // ]
 
 class RemoteSearch {
-  constructor({ inputSelector, listSelector, minLen=3, absoluteUrl, relativeUrl, onClickItem, onGetResult, getItemsFromResult, itemLabel, urlQueryParams={}, inputPlaceholder }) {
+  constructor({ inputSelector, minLen=3, absoluteUrl, relativeUrl, onClickItem, onGetResult, getItemsFromResult, itemLabel, urlQueryParams={}, inputPlaceholder }) {
     this.inputSelector = inputSelector;
-    this.listSelector = listSelector;
     this.minLen = minLen;
     this.absoluteUrl = absoluteUrl;
     this.relativeUrl = relativeUrl;
@@ -39,6 +38,9 @@ class RemoteSearch {
             `to a html node that does not exist.`
         );
       }
+
+      self.createListContainerAndList()
+      self.positionList()
 
       new TypingDelayer(
         {
@@ -104,7 +106,7 @@ class RemoteSearch {
     }
 
     const data = await resp.json();
-
+ 
     return data;
   }
 
@@ -144,6 +146,32 @@ class RemoteSearch {
     return listItemEl
   }
 
+  createListContainerAndList() {
+    const inputEl = document.querySelector(this.inputSelector)
+    const searchContainerEl = inputEl.closest(".remote-search-box")
+
+    const listContainerEl = document.createElement("div")
+    const listEl = document.createElement("ul")
+
+    listContainerEl.classList.add("list-box")
+
+    listContainerEl.appendChild(listEl)
+    searchContainerEl.appendChild(listContainerEl)
+  }
+
+  positionList() {
+    const inputEl = document.querySelector(this.inputSelector)
+    const inputCoord = inputEl.getBoundingClientRect();
+    console.log(inputCoord)
+      //     <div class="list-box">
+      //   <ul>
+      //     <li>list item 1</li>
+      //     <li>list item 2</li>
+      //     <li>list item 3</li>
+      //   </ul>
+      // </div>
+  }
+
   static paramsToQueryStr(params) {
     return new URLSearchParams(params).toString();
   }
@@ -153,9 +181,9 @@ class RemoteSearch {
 
 new RemoteSearch({
   // where the user types
-  inputSelector: ".box-search > input",
+  inputSelector: ".remote-search-box > .input-box > input",
   // where results are shown
-  listSelector: ".box-search > .list",
+  // listSelector: ".box-search > .list",
   // min char number to trigger remote search
   minLen: 3,
   // url to make request to

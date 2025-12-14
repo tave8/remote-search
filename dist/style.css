@@ -1,0 +1,27 @@
+.remote-search-box {
+    display: flex;
+}
+
+.remote-search-box > .list-box {
+
+}
+
+.remote-search-box > .list-box > ul {
+    max-height: 200px;
+    overflow-y: auto;
+    position: absolute;
+    border: 1px solid lightgray;
+    z-index: 9999;
+    list-style-type: none;
+    padding: 0;
+}
+
+.remote-search-box > .list-box > ul > li {
+    padding: .5rem;
+    cursor: pointer;
+}
+
+.remote-search-box > .list-box > ul > li:hover {
+    background-color: lightblue;
+}
+
