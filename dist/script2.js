@@ -4,7 +4,18 @@
 // ]
 
 class RemoteSearch {
-  constructor({ inputSelector, minLen=3, absoluteUrl, relativeUrl, onClickItem, onGetResult, getItemsFromResult, itemLabel, urlQueryParams={}, inputPlaceholder }) {
+  constructor({
+    inputSelector,
+    minLen = 3,
+    absoluteUrl,
+    relativeUrl,
+    onClickItem,
+    onGetResult,
+    getItemsFromResult,
+    itemLabel,
+    urlQueryParams = {},
+    inputPlaceholder,
+  }) {
     this.inputSelector = inputSelector;
     this.minLen = minLen;
     this.absoluteUrl = absoluteUrl;
@@ -14,7 +25,10 @@ class RemoteSearch {
     this.itemLabel = itemLabel;
     this.urlQueryParams = urlQueryParams;
     this.inputPlaceholder = inputPlaceholder;
-    this.getItemsFromResult = getItemsFromResult
+    this.getItemsFromResult = getItemsFromResult;
+
+    this.input = null;
+    this.list = null;
 
     const self = this;
 
@@ -39,8 +53,12 @@ class RemoteSearch {
         );
       }
 
-      self.createListContainerAndList()
-      self.positionList()
+      self.createListContainerAndList();
+      self.positionList();
+
+      // set more instance properties
+      self.input = inputEl;
+      self.list = inputEl.closest(".remote-search-box").querySelector(".list-box > ul");
 
       new TypingDelayer(
         {
@@ -63,7 +81,6 @@ class RemoteSearch {
     }
   }
 
-
   /**
    * Use this method to start the search mechanism.
    * The assumption is that this method is called when the user has stopped typing.
@@ -71,16 +88,16 @@ class RemoteSearch {
   async search(inputValue, moreInfo) {
     // check that the input value length is greater or equal the min length
     if (inputValue.length < this.minLen) {
-      return 
+      return;
     }
-    
+
     // console.log(inputValue)
     // console.log(this);
-    const responseData = await this.getRequest()
-    
-    const items = this.getItemsFromResult(responseData)
+    const responseData = await this.getRequest();
 
-    this.createList(items, responseData)
+    const items = this.getItemsFromResult(responseData);
+
+    this.refreshList(items, responseData);
   }
 
   async getRequest() {
@@ -106,70 +123,73 @@ class RemoteSearch {
     }
 
     const data = await resp.json();
- 
+
     return data;
   }
 
-  createList(items, responseData) {
-    const self = this
-    // empty list always 
+  refreshList(items, responseData) {
+    const self = this;
+    // empty list always
+    this.list.innerHTML = ""
 
     // there are no items
     if (items.length == 0) {
     }
     // there's more than one item
     else {
-      items.forEach(item => {
+      items.forEach((item) => {
         // the label of each item. this will be shown
         // to the user in the UI list item
-        const label = item[this.itemLabel]
-        const listItemEl = self.createListItem(label, item)
-        // .appendChild(listItemEl)
-        console.log(listItemEl)
-      })
+        const label = item[this.itemLabel];
+        const listItemEl = self.createListItem(label, item);
+        self.list.appendChild(listItemEl)
+        // console.log(listItemEl);
+      });
     }
   }
 
   createListItem(label, item) {
-    const listItemEl = document.createElement("li")
+    const self = this
+    const listItemEl = document.createElement("li");
     // the list item text
-    listItemEl.innerText = label
+    listItemEl.innerText = label;
     // when user clicks list item
     listItemEl.addEventListener("click", () => {
-      // empty list 
+      // empty list
 
       // set the value of the search input as the result item clicked
-      document.querySelector(self.inputSelector).value = label
+      self.input.value = label;
       // run the user-provided callback when clicking the item
-      self.onClickItem(item)
-    })
-    return listItemEl
+      self.onClickItem(item);
+    });
+    return listItemEl;
   }
 
   createListContainerAndList() {
-    const inputEl = document.querySelector(this.inputSelector)
-    const searchContainerEl = inputEl.closest(".remote-search-box")
+    const inputEl = document.querySelector(this.inputSelector);
+    const searchContainerEl = inputEl.closest(".remote-search-box");
 
-    const listContainerEl = document.createElement("div")
-    const listEl = document.createElement("ul")
+    const listContainerEl = document.createElement("div");
+    const listEl = document.createElement("ul");
 
-    listContainerEl.classList.add("list-box")
+    listContainerEl.classList.add("list-box");
 
-    listContainerEl.appendChild(listEl)
-    searchContainerEl.appendChild(listContainerEl)
+    listContainerEl.appendChild(listEl);
+    searchContainerEl.appendChild(listContainerEl);
   }
 
   positionList() {
-    const inputEl = document.querySelector(this.inputSelector)
-    const inputCoord = inputEl.getBoundingClientRect();
-    console.log(inputCoord)
-      //     <div class="list-box">
-      //   <ul>
-      //     <li>list item 1</li>
-      //     <li>list item 2</li>
-      //     <li>list item 3</li>
-      //   </ul>
-      // </div>
+    const inputEl = document.querySelector(this.inputSelector);
+    // console.log(this)
+    // const inputCoord = inputEl.getBoundingClientRect();
+    // console.log(inputCoord)
+    //     <div class="list-box">
+    //   <ul>
+    //     <li>list item 1</li>
+    //     <li>list item 2</li>
+    //     <li>list item 3</li>
+    //   </ul>
+    // </div>
   }
 
   static paramsToQueryStr(params) {
@@ -189,16 +209,16 @@ new RemoteSearch({
   // url to make request to
   absoluteUrl: "https://jsonplaceholder.typicode.com/users",
   // when user clicks the individual result item
-  onClickItem: async (id, moreInfo) => {
-    console.log(id, moreInfo);
+  onClickItem: async (item) => {
+    console.log(item);
   },
-  // when the result is received from the server, return the actual items (list of objects) 
+  // when the result is received from the server, return the actual items (list of objects)
   getItemsFromResult: (responseData) => {
-    // in this case, the items are found exactly in the json itself, 
-    // so there's no need to search any further 
-    // if instead the items are found in the json.items property, you must 
+    // in this case, the items are found exactly in the json itself,
+    // so there's no need to search any further
+    // if instead the items are found in the json.items property, you must
     // specify that here with return json.items
-    return responseData
+    return responseData;
   },
   // when the results arrive to the client, from the server
   onGetResult: async (respBody) => {
