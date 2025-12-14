@@ -15,6 +15,7 @@ class RemoteSearch {
     itemLabel,
     urlQueryParams = {},
     inputPlaceholder,
+    searchQueryParam = "search_term",
   }) {
     this.inputSelector = inputSelector;
     this.minLen = minLen;
@@ -26,6 +27,7 @@ class RemoteSearch {
     this.urlQueryParams = urlQueryParams;
     this.inputPlaceholder = inputPlaceholder;
     this.getItemsFromResult = getItemsFromResult;
+    this.searchQueryParam = searchQueryParam;
 
     this.input = null;
     this.list = null;
@@ -62,8 +64,8 @@ class RemoteSearch {
 
       // when the user types
       self.input.addEventListener("keydown", (ev) => {
-        self.emptyList()
-      })
+        self.emptyList();
+      });
 
       // fire the search method after delay from when user stops typing
       new TypingDelayer(
@@ -91,10 +93,7 @@ class RemoteSearch {
    * Use this method to start the search mechanism.
    * The assumption is that this method is called when the user has stopped typing.
    */
-  async search(inputValue, moreInfo) {
-    // empty list always
-    // this.emptyList()
-
+  async search(inputValue, moreInfoAfterWaitTyping) {
     // check that the input value length is greater or equal the min length
     if (inputValue.length < this.minLen) {
       return;
@@ -110,8 +109,19 @@ class RemoteSearch {
   }
 
   async getRequest() {
+    const resp = await fetch(this.getFinalUrl());
+
+    if (!resp.ok) {
+      throw new Error("errore nei server");
+    }
+
+    const data = await resp.json();
+
+    return data;
+  }
+
+  getFinalUrl() {
     let url = "";
-    let urlWithQstr = "";
 
     // was the absolute or relative url provided
     if (this.absoluteUrl) {
@@ -122,18 +132,25 @@ class RemoteSearch {
       throw Error("No url provided.");
     }
 
-    const qstr = RemoteSearch.paramsToQueryStr(this.urlQueryParams);
+    return `${url}?${this.getUrlQueryStr()}`;
+  }
 
-    urlWithQstr = `${url}?${qstr}`;
-    const resp = await fetch(url);
+  getUrlQueryParams() {
+    // the user-provided or default search query param, for example:
+    // search_term, term ecc.
+    // this will result in the query string having that parameter, example:
+    // search_term="mary poppins"
+    const searchQueryParam = {
+      [this.searchQueryParam]: this.input.value,
+    };
+    // the user-provided query params
+    // creating a new object and giving priority to searchQueryParam,
+    // which will override any param in this.urlQueryParams
+    return Object.assign({}, this.urlQueryParams, searchQueryParam);
+  }
 
-    if (!resp.ok) {
-      throw new Error("errore nei server");
-    }
-
-    const data = await resp.json();
-
-    return data;
+  getUrlQueryStr() {
+    return RemoteSearch.paramsToQueryStr(this.getUrlQueryParams());
   }
 
   refreshList(items, responseData) {
@@ -149,21 +166,22 @@ class RemoteSearch {
         // to the user in the UI list item
         const label = item[this.itemLabel];
         const listItemEl = self.createListItem(label, item);
-        self.list.appendChild(listItemEl)
+        self.list.appendChild(listItemEl);
         // console.log(listItemEl);
       });
     }
   }
 
   createListItem(label, item) {
-    const self = this
+    const self = this;
     const listItemEl = document.createElement("li");
     // the list item text
     listItemEl.innerText = label;
+
     // when user clicks list item
     listItemEl.addEventListener("click", () => {
       // empty list
-
+      self.emptyList();
       // set the value of the search input as the result item clicked
       self.input.value = label;
       // run the user-provided callback when clicking the item
@@ -200,7 +218,7 @@ class RemoteSearch {
   }
 
   emptyList() {
-    this.list.innerHTML = ""
+    this.list.innerHTML = "";
   }
 
   static paramsToQueryStr(params) {
@@ -237,6 +255,8 @@ new RemoteSearch({
   },
   // the property that will be displayed to the user in the result item
   itemLabel: "name",
+  // the search term query string parameter that will contain the value of the input
+  searchQueryParam: "term",
   // the query params to append to url before making request
   urlQueryParams: {
     x: 2,
