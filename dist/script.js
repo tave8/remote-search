@@ -333,14 +333,3 @@ async function _remote_request({ url, params={} })
 }
 
 
-function _to_qstr(params) {
-    return (new URLSearchParams(params)).toString()
-}
-
-function _get_query_params() {
-    return new URLSearchParams(window.location.search)
-}
-
-function _get_query_param(param) {
-    return _get_query_params().get(param)
-}
