@@ -25,6 +25,8 @@ class RemoteSearch {
     onLoseFocusHideResultList = true,
     setCustomItemLabel,
     highlightMatch = false,
+    positionSpinner,
+    positionResultList,
   }) {
     this.inputSelector = inputSelector;
     this.minLen = minLen;
@@ -48,6 +50,16 @@ class RemoteSearch {
       : function (item) {
           return item[itemLabel];
         };
+
+    this.positionSpinner = positionSpinner
+      ? positionSpinner
+      : function () {
+          return {
+            top: 0,
+            left: 0,
+          };
+        };
+    // this.positionResultList =
 
     this.input = null;
     this.list = null;
@@ -103,10 +115,10 @@ class RemoteSearch {
     // initially center the list container,
     // then when window resizes, re-center it again
     self.positionListUnderInput();
-    self.positionSpinnerNearInput()
+    self.positionSpinnerNearInput();
     window.addEventListener("resize", () => {
       self.positionListUnderInput();
-      self.positionSpinnerNearInput()
+      self.positionSpinnerNearInput();
     });
 
     this.input.addEventListener("keyup", (ev) => {
@@ -294,12 +306,14 @@ class RemoteSearch {
 
   positionSpinnerNearInput() {
     const inputRect = this.input.getBoundingClientRect();
-    
+
     let left = inputRect.left + window.scrollX;
     let top = inputRect.bottom + window.scrollY;
 
-    left = left + 150;
-    top = top - 20;
+    const { left: leftCustom, top: topCustom } = this.positionSpinner();
+
+    left = left + leftCustom;
+    top = top + topCustom;
 
     // position search result underneath search input
     this.spinner.style.position = "absolute";
@@ -430,4 +444,12 @@ new RemoteSearch({
   inputPlaceholder: "Search all (min _N_ required)",
   // when the focus is lost on the search input, hide the result list?
   onLoseFocusHideResultList: false,
+  // custom function to programmatically position the spinner wherever you want,
+  // using as reference point the search input
+  positionSpinner: () => {
+    return {
+      top: -25,
+      left: 240,
+    };
+  },
 });
