@@ -1,9 +1,8 @@
-
 /**
  * Remote search, made easy.
  * Configure your search in a few lines, so you can focus on your app's core logic.
- * 
- * @author Giuseppe Tavella 
+ *
+ * @author Giuseppe Tavella
  */
 class RemoteSearch {
   constructor({
@@ -34,7 +33,7 @@ class RemoteSearch {
     this.onGetResults = onGetResults;
     this.itemLabel = itemLabel;
     this.urlQueryParams = urlQueryParams;
-    this.inputPlaceholder = inputPlaceholder;
+    this.inputPlaceholder = inputPlaceholder ? inputPlaceholder : "search...";
     this.getItemsFromResult = getItemsFromResult;
     this.searchQueryParam = searchQueryParam;
     this.onLoseFocusHideResultList = onLoseFocusHideResultList;
@@ -110,13 +109,6 @@ class RemoteSearch {
       );
     }
 
-        // make the search input not autocomplete,
-    // so you don't see suggestions
-    // this.$input.attr("autocomplete", "off");
-    // // default placeholder
-    // placeholder = placeholder ? placeholder : `Inserisci minimo ${min_len} lettere`;
-    // this.$input.attr("placeholder", placeholder);
-
     this.createListContainerAndList();
 
     // set more instance properties
@@ -126,8 +118,9 @@ class RemoteSearch {
 
     this.spinner = this.createSpinner();
     this.positionSpinnerNearInput();
-    
-    
+
+    this.customizeSearchInput();
+
     // initially center the list container,
     // then when window resizes, re-center it again
     self.positionListUnderInput();
@@ -136,7 +129,7 @@ class RemoteSearch {
       self.positionListUnderInput();
       self.positionSpinnerNearInput();
     });
-    
+
     this.input.addEventListener("keyup", (ev) => {
       // this must be here, with a keyup listener, because
       // the value must be updated only when the user has finished
@@ -207,8 +200,8 @@ class RemoteSearch {
 
     // fire the user-defined callback as soon as data is arrived
     // and available
-    if(this.onGetResults) {
-      this.onGetResults(responseData, respObj)
+    if (this.onGetResults) {
+      this.onGetResults(responseData, respObj);
     }
 
     return responseData;
@@ -312,7 +305,6 @@ class RemoteSearch {
     return spinnerEl;
   }
 
-
   /**
    * In the item label, highlight the current input value.
    * This helps the user see what their input value has matched,
@@ -380,6 +372,14 @@ class RemoteSearch {
     }
   }
 
+  customizeSearchInput() {
+    // make the search input not autocomplete,
+    // so users doesnt see input suggestions
+    this.input.setAttribute("autocomplete", "off");
+    // // default placeholder
+    this.input.setAttribute("placeholder", this.inputPlaceholder);
+  }
+
   emptyList() {
     this.list.innerHTML = "";
   }
@@ -421,4 +421,3 @@ class RemoteSearch {
     return new URLSearchParams(params).toString();
   }
 }
-

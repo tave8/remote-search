@@ -47,7 +47,7 @@ new RemoteSearch({
     x: 2,
   },
   // the input placeholder, which can be dynamic as well
-  inputPlaceholder: "Search all (min _N_ required)",
+  // inputPlaceholder: "Search this field",
   // when the focus is lost on the search input, hide the result list?
   onLoseFocusHideResultList: false,
   // custom function to programmatically position the spinner wherever you want,

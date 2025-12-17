@@ -9,21 +9,34 @@
 }
 
 .remote-search-box input {
+  border: 1px solid lightgray;
   height: 1.5rem;
   font-size: 1.2rem;
-  padding-block: .2rem;
-  padding-left: .7rem;
+  padding-block: 0.2rem;
+  padding-left: 0.7rem;
   /* this serves to also give the space for the spinner */
   padding-right: 2.5rem;
+  border-radius: 0.3rem;
+  box-shadow: 8px 11px 29px -8px rgba(0, 0, 0, 0.75);
+  -webkit-box-shadow: 8px 11px 29px -8px rgba(0, 0, 0, 0.75);
+  -moz-box-shadow: 8px 11px 29px -8px rgba(0, 0, 0, 0.75);
+}
+
+.remote-search-box input:focus {
+  outline: none;
 }
 
 .remote-search-box > .list-box {
+  background-color: white;
   max-height: 200px;
   overflow-y: auto;
   position: absolute;
   border: 1px solid lightgray;
   z-index: 9999;
   border-radius: 0.2rem;
+  box-shadow: 9px 10px 7px -7px rgba(0, 0, 0, 0.75);
+  -webkit-box-shadow: 9px 10px 7px -7px rgba(0, 0, 0, 0.75);
+  -moz-box-shadow: 9px 10px 7px -7px rgba(0, 0, 0, 0.75);
 }
 
 .remote-search-box > .list-box.no-border {
@@ -39,6 +52,7 @@
 .remote-search-box > .list-box > ul > li {
   cursor: pointer;
   padding: 0.5rem;
+  font-size: 0.9rem;
 }
 
 .remote-search-box > .list-box > ul > li:not(:last-child) {
@@ -46,7 +60,7 @@
 }
 
 .remote-search-box > .list-box > ul > li:hover {
-  background-color: lightblue;
+  background-color: rgb(230, 230, 230);
 }
 
 .remote-search-highlight-match {
