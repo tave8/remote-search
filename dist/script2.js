@@ -1,384 +1,339 @@
-// TO IMPLEMENT
-// when user clicks out of list input, or when input loses focus, list disappears
-// on window resize, set a timeout mechanism with clear last timeout and set new timeout, to reposition the list underneath the input
-// when click item, fill an input value
-// when click item,
+/**
+ * Simple Remote Search library
+ *
+ * How to use:
+ * The JSON that is returned from the server
+ * must have this format:
+ * {
+ *  "success": bool,
+ *  "errors": [str],
+ *  "items": [obj]
+ * }
+ * Each object in the items array, must have a
+ * _label property, which will be used
+ * to populate the search input value,
+ * as well as the result items list
+ * requires bootstrap 5 and jquery
+ *
+ * @author Giuseppe Tavella
+ */
 
-// Only array of objects are accepted.
-// So [
-// {myLabel: "value"}
-// ]
-
-class RemoteSearch {
-  constructor({
-    inputSelector,
-    minLen = 3,
-    absoluteUrl,
-    relativeUrl,
-    onClickItem,
-    onGetResult,
-    getItemsFromResult,
-    itemLabel,
-    urlQueryParams = {},
-    inputPlaceholder,
-    searchQueryParam = "search_term",
-    onLoseFocusHideResultList = true,
-    setCustomItemLabel,
-    highlightMatch = false,
-  }) {
-    this.inputSelector = inputSelector;
-    this.minLen = minLen;
-    this.absoluteUrl = absoluteUrl;
-    this.relativeUrl = relativeUrl;
-    this.onClickItem = onClickItem;
-    this.onGetResult = onGetResult;
-    this.itemLabel = itemLabel;
-    this.urlQueryParams = urlQueryParams;
-    this.inputPlaceholder = inputPlaceholder;
-    this.getItemsFromResult = getItemsFromResult;
-    this.searchQueryParam = searchQueryParam;
-    this.onLoseFocusHideResultList = onLoseFocusHideResultList;
-    this.highlightMatch = highlightMatch;
-    // if no function to set the item label is provided,
-    // then the value of the item label is considered at instance.itemLabel
-    // for example, if itemLabel is "name", then the result list the items
-    // will appear as having their item["name"] value
-    this.setCustomItemLabel = setCustomItemLabel
-      ? setCustomItemLabel
-      : function (item) {
-          return item[itemLabel];
-        };
-
-    this.input = null;
-    this.list = null;
-    this.listContainer = null;
-
-    const self = this;
-
-    // CHECKS
-    // the TypingDelayer library must exist
-    if (!TypingDelayer) {
-      throw Error("Must include 'TypingDelayer' library, for this class to work.");
-    }
-
-    // if the document was loaded
-    if (document.readyState == "complete") {
-      self.init();
-    }
-    // before the document is loaded
-    else {
-      window.addEventListener("load", self.init.bind(self));
-    }
-  }
-
+class RemoteSearch2 {
   /**
-   * Called only once on instantiation.
+   *
+   * @param input the id of the search input (where user types)
+   * @param url the url to make the request to, where the
+   * query string param "term" will be appended
+   * @param when_click callback when user clicks on a list item
+   * @param when_success callback when the request is successful
+   * @param when_error callback when the request fails
+   * @param save_item_id in which html element it you want to save the
+   * item.id of the list item clicked
    */
-  init() {
-    const self = this;
+  constructor({ input, url, label, min_len = 3, when_click, when_success, when_error, placeholder, save_item_id }) {
+    this.input = input;
+    this.$input = $("#" + input);
+    this.url = url;
+    // the label of each item
+    this.label = label;
+    // how many characters to have at least,
+    // before triggering the remote request
+    this.min_len = min_len;
+    this.timeout = null;
+    this.term = null;
+    this.$list_container = null;
+    this.save_item_id = save_item_id;
 
-    // check that the provided input id resolves to a real html node
-    const inputEl = document.querySelector(this.inputSelector);
-    const existsInput = inputEl instanceof HTMLElement;
-    // console.log(inputSelector);
+    // make the search input not autocomplete,
+    // so you don't see suggestions
+    this.$input.attr("autocomplete", "off");
+    // default placeholder
+    placeholder = placeholder ? placeholder : `Inserisci minimo ${min_len} lettere`;
+    this.$input.attr("placeholder", placeholder);
 
-    if (!existsInput) {
-      throw Error(
-        `Error in "RemoteSearch" library. ` +
-          `The provided '${this.inputSelector}' CSS selector, to select the input, resolves ` +
-          `to a html node that does not exist.`
-      );
-    }
+    // the user-defined callback when
+    // a list item is clicked
+    this.when_click = when_click;
+    this.when_success = when_success;
+    this.when_error = when_error;
 
-    this.createListContainerAndList();
-
-    // set more instance properties
-    this.input = inputEl;
-    this.listContainer = inputEl.closest(".remote-search-box").querySelector(".list-box");
-    this.list = this.listContainer.querySelector("ul");
-
-    // initially center the list container,
-    // then when window resizes, re-center it again
-    self.positionListUnderInput();
-    window.addEventListener("resize", () => {
-      self.positionListUnderInput();
-    });
-
-    this.input.addEventListener("keyup", (ev) => {
-      // this must be here, with a keyup listener, because
-      // the value must be updated only when the user has finished
-      // typing that char
-      self.inputValue = self.input.value;
-    });
-
-    // when the user types
-    // update the input value, as soon as the user types in
-    this.input.addEventListener("keydown", (ev) => {
-      self.showListContainerBorder(false);
-      self.emptyList();
-    });
-
-    // configure: if input loses focus, should the result list
-    // stay or go away?
-    if (this.onLoseFocusHideResultList) {
-      this.input.addEventListener("focusout", () => {
-        self.emptyList();
-        self.showListContainerBorder(false);
+    var inst = this;
+    // when document is ready
+    $(document).ready(() => {
+      // if a list container is not alread set
+      // the container that contains the list items
+      this.$list_container = $(`<div class="list-group"></div>`);
+      // set an id for this list container
+      this.$list_container.attr("id", `${this.input}_results_container`);
+      // add some css to the list container
+      this.$list_container.css({
+        "max-height": "200px",
+        "overflow-y": "auto",
+        position: "absolute",
+        border: "1px solid lightgray",
+        "z-index": "9999",
       });
-    }
 
-    // fire the search method after delay from when user stops typing
-    new TypingDelayer(
-      {
-        inputSelector: this.inputSelector,
-        onTypingStopped: this.search,
-      },
-      { callerContext: this }
-    );
+      // append the list container right below the search input
+      this.$input.after(this.$list_container);
+
+      // when user types
+      inst.$input.on("keyup", (e) => {
+        // clear previous timeout
+        clearTimeout(inst.timeout);
+        // set new timeout
+        inst.timeout = setTimeout(() => {
+          // update the current term
+          inst.term = $(e.target).val();
+          // remote search is triggered only when
+          // search is at least 3 chars
+          if (inst.term.length < inst.min_len) {
+            return;
+          }
+
+          // append the spinner to the list container,
+          // before making the remote request
+          this.$list_container.html("");
+          this.$list_container.append(`
+                         <button type="button" 
+                              class="list-group-item list-group-item-action" disabled>
+                              caricando...
+                        </button>
+                    `);
+
+          // all conditions to do the remote request
+          // are satisfied, so do remote request
+          // do remote request
+          inst.do_request_remote({
+            // if response is successful
+            success: (resp) => {
+              if (resp.success) {
+                // assumes the items to make the list of
+                // are in the items property, and
+                // it's an array of objects
+                inst.make_list(resp.items);
+                // user-defined callback, passing the entire response
+                if (inst.when_success) {
+                  inst.when_success(resp);
+                }
+                return;
+              }
+              this.error();
+              // the request was not successful
+              if (inst.when_error) {
+                this.when_error();
+              }
+            },
+            // an error occurred during the remote request
+            error: (err) => {
+              this.error();
+              if (inst.when_error) {
+                this.when_error();
+              }
+            },
+          });
+        }, 500);
+      });
+    });
   }
 
-  /**
-   * Use this method to start the search mechanism.
-   * The assumption is that this method is called when the user has stopped typing.
-   */
-  async search(inputValue, moreInfoAfterWaitTyping) {
-    // check that the input value length is greater or equal the min length
-    if (inputValue.length < this.minLen) {
-      return;
-    }
-
-    // console.log(inputValue)
-    // console.log(this);
-    const responseData = await this.doGetRequest();
-
-    const items = this.getItemsFromResult(responseData);
-
-    this.refreshList(items, responseData);
+  error() {
+    this.$list_container.html("");
+    var $err = $(`
+            <button type="button" 
+                class="list-group-item list-group-item-action" disabled>
+                (errore nei server)
+            </button>    
+        `);
+    this.$list_container.append($err);
+    var inst = this;
+    setTimeout(() => {
+      inst.$list_container.html("");
+    }, 3000);
   }
 
-  async doGetRequest() {
-    const resp = await fetch(this.getFinalUrl());
-
-    if (!resp.ok) {
-      throw new Error("errore nei server");
-    }
-
-    const data = await resp.json();
-
-    return data;
+  /*
+    Do remote request
+    */
+  do_request_remote({ success, error }) {
+    $.ajax({
+      url: this.url,
+      data: { term: this.term },
+      success,
+      error,
+    });
   }
 
-  refreshList(items, responseData) {
-    const self = this;
+  /*
+    Make the result list with the items 
+    of the remote request 
+    */
+  make_list(items) {
+    // before making a new list, empty the previous one
+    // if one was set
 
-    this.showListContainerBorder();
+    this.$list_container.html("");
 
-    // there are no items
-    if (items.length == 0) {
+    var inst = this;
+    // the list of list items
+    var $list_items = $("<div></div>");
+
+    // if there are no items
+    if (items.length === 0) {
+      let $no_item = $(`
+                <button type="button" 
+                              class="list-group-item list-group-item-action">
+                              Nessun elemento trovato
+                </button>
+            `);
+      $no_item.on("click", () => {
+        // empty the search input as well
+        this.$input.val("");
+        // when user clicks on "there's no item"
+        // the list container is emptied
+        inst.$list_container.html("");
+      });
+      $list_items.append($no_item);
     }
-    // there's more than one item
+    // there are items
     else {
       items.forEach((item) => {
-        const listItemEl = self.createListItem(item);
-        self.list.appendChild(listItemEl);
-        // console.log(listItemEl);
+        // make a single item
+        // this is where items appear
+        let label = item[inst.get_label()];
+        let $list_item = $(`
+                      <button type="button" 
+                              class="list-group-item list-group-item-action">
+                              ${label}
+                      </button>
+                `);
+        // add hover effects to each element
+        // not necessary, just adds some nice styling
+        // .hover(
+        //     function() {
+        //         $(this).css({
+        //           'background-color': '#f19532'
+        //         });
+        //       },
+        //       function() {
+        //         $(this).css({
+        //           'background-color': ''
+        //         });
+        //       }
+        // )
+
+        // when user clicks that specific item
+        $list_item.on("click", () => {
+          // empty the list container
+          inst.$list_container.html("");
+          // the search input's value is set to the label
+          inst.$input.val(item[inst.get_label()]);
+
+          // if defined, save into this input,
+          // automatically save the id of the list item clicked
+          if (inst.save_item_id) {
+            $("#" + inst.save_item_id).val(item.id);
+          }
+          // call the user callback with the item
+          // that was clicked
+          // pass the item to the user-defined callback
+          if (inst.when_click) {
+            inst.when_click(item);
+          }
+        });
+        // append each list item to the list
+        $list_items.append($list_item);
       });
     }
+
+    // append the list items to the list container
+    this.$list_container.append($list_items);
   }
 
-  /**
-   * When a result list item gets clicked.
-   */
-  handleClickItem(item) {
-    const self = this;
-    // empty list
-    self.emptyList();
-    // hide the list container border
-    this.showListContainerBorder(false);
-    // set the value of the search input as the result item clicked
-    self.input.value = this.setCustomItemLabel(item);
-    // run the user-provided callback when clicking the item
-    self.onClickItem(item);
-  }
-
-  /**
-   * Creates the individual result list item.
-   */
-  createListItem(item) {
-    const self = this;
-    const listItemEl = document.createElement("li");
-    // the user can provide a function to customize
-    // how each list item will be displayed
-    // if no custom function is provided, the provided itemLabel
-    // value will be used
-    let label = this.setCustomItemLabel(item);
-
-    if (this.highlightMatch) {
-      // in the label, wrap around the matching search term, the bold tags
-      // which means "highlighting"
-      const labelWithHighlight = this.highlightMatchingSearch(label);
-      listItemEl.innerHTML = labelWithHighlight;
-    } else {
-      listItemEl.innerText = label;
-    }
-
-    // when user clicks list item
-    listItemEl.addEventListener("click", () => {
-      self.handleClickItem.bind(self)(item);
-    });
-
-    return listItemEl;
-  }
-
-  createListContainerAndList() {
-    const inputEl = document.querySelector(this.inputSelector);
-    const searchContainerEl = inputEl.closest(".remote-search-box");
-
-    const listContainerEl = document.createElement("div");
-    const listEl = document.createElement("ul");
-
-    // initially removes the border
-    listContainerEl.classList.add("list-box", "no-border");
-
-    listContainerEl.appendChild(listEl);
-    searchContainerEl.appendChild(listContainerEl);
-  }
-
-  /**
-   * In the item label, highlight the current input value.
-   * This helps the user see what their input value has matched,
-   * for each list item label.
-   */
-  highlightMatchingSearch(label) {
-    if (!this.inputValue) return label;
-
-    const escaped = this.inputValue.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const regex = new RegExp(escaped, "gi");
-
-    return label.replace(regex, "<span class='remote-search-highlight-match'>$&</span>");
-  }
-
-  positionListUnderInput() {
-    // compute search input coordinates
-    const inputRect = this.input.getBoundingClientRect();
-
-    let left = inputRect.left + window.scrollX
-    let top = inputRect.bottom + window.scrollY
-
-    // you can adjust these values, to adjust where the 
-    // list container will be positioned, based on the search input
-    // left = left - 50 for example means that the list container
-    // will be more at the left side, which is used to create a more
-    // "centered effect" between the search input and search list
-    left = left - 50
-    top = top + 0
-
-    // position search result underneath search input
-    this.listContainer.style.position = "absolute";
-    this.listContainer.style.left = `${left}px`;
-    this.listContainer.style.top = `${top}px`;
-  }
-
-  showListContainerBorder(show = true) {
-    // removes the no-border class from list container,
-    if (show) {
-      this.listContainer.classList.remove("no-border");
-    } else {
-      this.listContainer.classList.add("no-border");
-    }
-  }
-
-  emptyList() {
-    this.list.innerHTML = "";
-  }
-
-  getFinalUrl() {
-    let url = "";
-
-    // was the absolute or relative url provided
-    if (this.absoluteUrl) {
-      url = this.absoluteUrl;
-    } else if (this.relativeUrl) {
-      url = this.relativeUrl;
-    } else {
-      throw Error("No url provided.");
-    }
-
-    return `${url}?${this.getUrlQueryStr()}`;
-  }
-
-  getUrlQueryParams() {
-    // the user-provided or default search query param, for example:
-    // search_term, term ecc.
-    // this will result in the query string having that parameter, example:
-    // search_term="mary poppins"
-    const searchQueryParam = {
-      [this.searchQueryParam]: this.input.value,
-    };
-    // the user-provided query params
-    // creating a new object and giving priority to searchQueryParam,
-    // which will override any param in this.urlQueryParams
-    return Object.assign({}, this.urlQueryParams, searchQueryParam);
-  }
-
-  getUrlQueryStr() {
-    return RemoteSearch.paramsToQueryStr(this.getUrlQueryParams());
-  }
-
-  static paramsToQueryStr(params) {
-    return new URLSearchParams(params).toString();
+  get_label() {
+    return this.label ? this.label : "_label";
   }
 }
 
-// USAGE
 
-new RemoteSearch({
-  // where the user types
-  inputSelector: ".remote-search-box > .input-box > input",
-  // where results are shown
-  // listSelector: ".box-search > .list",
-  // min char number to trigger remote search
-  minLen: 3,
-  // url to make request to
-  absoluteUrl: "https://jsonplaceholder.typicode.com/users",
-  // when user clicks the individual result item
-  onClickItem: async (item) => {
-    console.log(item);
-  },
-  // when the result is received from the server, return the actual items (list of objects)
-  getItemsFromResult: (responseData) => {
-    // in this case, the items are found exactly in the json itself,
-    // so there's no need to search any further
-    // if instead the items are found in the json.items property, you must
-    // specify that here with return json.items
-    return responseData;
-  },
-  // when the results arrive to the client, from the server
-  onGetResult: async (respBody) => {
-    console.log(respBody);
-  },
-  // the property that will be displayed to the user in the result item
-  itemLabel: "name",
-  // you can customize the item label. this function will be called
-  // for each item, passing in the item. you can then set custom logic
-  // to display whichever label you want. if this function is not provided,
-  // the instance.itemLabel will be used
-  setCustomItemLabel: (item) => {
-    if (item.email.endsWith("biz")) {
-      return `${item.website} - ${item.name}`;
+
+
+
+
+
+
+async function remote_get_dipendenti(id_committente) {
+  const qstr = _to_qstr({
+    id_committente,
+  });
+  const url = `/crm/ajax2/committenti/get-dipendenti`;
+  const final_url = `${url}?${qstr}`;
+  const resp = await fetch(final_url);
+  if (!resp.ok) {
+    throw new Error("errore nei server");
+  }
+  const data = await resp.json();
+  if (!data.success) {
+    throw new Error("errore nei server");
+  }
+  return data.items;
+}
+
+
+
+/**
+ * Fai una richiesta remota asincrona con il metodo GET.  
+ * */ 
+async function _remote_request({ url, params={} }) 
+{
+    if (!(typeof url === 'string')) {
+        throw new Error("L'url deve essere una stringa")
     }
-    return item.name;
-  },
-  // visually mark/highlight the matching search text, in whatever the final item label will be?
-  highlightMatch: true,
-  // the search term query string parameter that will contain the value of the input
-  searchQueryParam: "term",
-  // the query params to append to url before making request
-  urlQueryParams: {
-    x: 2,
-  },
-  // the input placeholder, which can be dynamic as well
-  inputPlaceholder: "Search all (min _N_ required)",
-  // when the focus is lost on the search input, hide the result list?
-  onLoseFocusHideResultList: false,
-});
+    if (!(typeof params === 'object')) {
+        throw new Error("I parametri della query, prima di essere "
+                        +"convertiti in stringa, devono essere un oggetto")
+    }
+    const qstr = (new URLSearchParams(params)).toString()
+    const final_url = `${url}?${qstr}`
+
+    let resp = null
+    try {
+        resp = await fetch(final_url)
+    }
+    catch (e) {
+        throw new Error(`errore nel client prima/durante `
+                        +`l'invio della richiesta remota: ${e.message}`)
+    }
+
+    if (!resp.ok) { 
+        throw new Error(`errore dopo richiesta remota. `
+                        +`status code: ${resp.status}`) 
+    }
+    
+    // prova a convertire il corpo della risposta in json
+    let resp_json = null
+    try {
+        resp_json = await resp.json()
+    }
+    catch (e) {
+        throw new Error(`errore dopo la richiesta remota, `
+                       +`durante il parsing del corpo della `
+                       +`richiesta in json: ${e.message}`)
+    }
+
+    if (!resp_json.success) { 
+        let errors_str = "[nessun errore specificato dal server, "
+                         +"o l'attributo per gli errori non e' un array]"
+        if (Array.isArray(resp_json.errors)) {
+            errors_str = resp_json.errors.join(', ')
+        }
+        throw new Error(`errore dopo richiesta remota: motivazione: `
+                      +`nel corpo json della risposta, l'attributo che `
+                      +`indica il successo della risposta e' falso o inesistente. `
+                      +`errori: ${errors_str}`) 
+    }
+    // ritorna tutto il corpo della risposta in json/oggetto js
+    return resp_json
+}
+
+
