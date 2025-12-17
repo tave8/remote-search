@@ -19,6 +19,10 @@ main {
   z-index: 9999;
 }
 
+.remote-search-box > .list-box.no-border {
+ border: 0;
+}
+
 .remote-search-box > .list-box > ul {
   list-style-type: none;
   padding: 0;

@@ -39,9 +39,9 @@ class RemoteSearch {
 
     this.input = null;
     this.list = null;
-    this.listContainer = null
+    this.listContainer = null;
 
-    const self = this
+    const self = this;
 
     // CHECKS
     // the TypingDelayer library must exist
@@ -63,7 +63,7 @@ class RemoteSearch {
    * Called only once on instantiation.
    */
   init() {
-    const self = this
+    const self = this;
 
     // check that the provided input id resolves to a real html node
     const inputEl = document.querySelector(this.inputSelector);
@@ -92,12 +92,13 @@ class RemoteSearch {
       self.emptyList();
     });
 
-    // configure: if input loses focus, should the result list 
+    // configure: if input loses focus, should the result list
     // stay or go away?
     if (this.onLoseFocusHideResultList) {
       this.input.addEventListener("focusout", () => {
-        self.emptyList()
-      })
+        self.emptyList();
+        self.showListContainerBorder(false);
+      });
     }
 
     // fire the search method after delay from when user stops typing
@@ -177,6 +178,8 @@ class RemoteSearch {
   refreshList(items, responseData) {
     const self = this;
 
+    this.showListContainerBorder();
+
     // there are no items
     if (items.length == 0) {
     }
@@ -193,6 +196,8 @@ class RemoteSearch {
     }
   }
 
+  handleClickItem() {}
+
   createListItem(label, item) {
     const self = this;
     const listItemEl = document.createElement("li");
@@ -203,6 +208,8 @@ class RemoteSearch {
     listItemEl.addEventListener("click", () => {
       // empty list
       self.emptyList();
+      // hide the list container border
+      this.showListContainerBorder(false);
       // set the value of the search input as the result item clicked
       self.input.value = label;
       // run the user-provided callback when clicking the item
@@ -218,7 +225,8 @@ class RemoteSearch {
     const listContainerEl = document.createElement("div");
     const listEl = document.createElement("ul");
 
-    listContainerEl.classList.add("list-box");
+    // initially removes the border
+    listContainerEl.classList.add("list-box", "no-border");
 
     listContainerEl.appendChild(listEl);
     searchContainerEl.appendChild(listContainerEl);
@@ -234,6 +242,15 @@ class RemoteSearch {
     this.listContainer.style.position = "absolute";
     this.listContainer.style.left = `${inputRect.left + window.scrollX}px`;
     this.listContainer.style.top = `${inputRect.bottom + window.scrollY}px`;
+  }
+
+  showListContainerBorder(show = true) {
+    // removes the no-border class from list container,
+    if (show) {
+      this.listContainer.classList.remove("no-border");
+    } else {
+      this.listContainer.classList.add("no-border");
+    }
   }
 
   emptyList() {
@@ -283,5 +300,5 @@ new RemoteSearch({
   // the input placeholder, which can be dynamic as well
   inputPlaceholder: "Search all (min _N_ required)",
   // when the focus is lost on the search input, hide the result list?
-  onLoseFocusHideResultList: true,
+  onLoseFocusHideResultList: false,
 });
