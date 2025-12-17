@@ -17,7 +17,7 @@ main {
   padding-block: .2rem;
   padding-left: .7rem;
   /* this serves to also give the space for the spinner */
-  padding-right: 1.5rem;
+  padding-right: 2.5rem;
 }
 
 .remote-search-box > .list-box {

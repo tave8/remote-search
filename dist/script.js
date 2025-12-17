@@ -27,6 +27,8 @@ class RemoteSearch {
     highlightMatch = false,
     positionSpinner,
     positionResultList,
+    positionSpinnerRightInput = true,
+    positionResultListUnderInput = true,
   }) {
     this.inputSelector = inputSelector;
     this.minLen = minLen;
@@ -41,6 +43,8 @@ class RemoteSearch {
     this.searchQueryParam = searchQueryParam;
     this.onLoseFocusHideResultList = onLoseFocusHideResultList;
     this.highlightMatch = highlightMatch;
+    this.positionSpinnerRightInput = positionSpinnerRightInput;
+    this.positionResultListUnderInput = positionResultListUnderInput;
     // if no function to set the item label is provided,
     // then the value of the item label is considered at instance.itemLabel
     // for example, if itemLabel is "name", then the result list the items
@@ -59,7 +63,15 @@ class RemoteSearch {
             left: 0,
           };
         };
-    // this.positionResultList =
+
+    this.positionResultList = positionResultList
+      ? positionResultList
+      : function () {
+          return {
+            top: 0,
+            left: 0,
+          };
+        };
 
     this.input = null;
     this.list = null;
@@ -116,10 +128,12 @@ class RemoteSearch {
     // then when window resizes, re-center it again
     self.positionListUnderInput();
     self.positionSpinnerNearInput();
+
     window.addEventListener("resize", () => {
       self.positionListUnderInput();
       self.positionSpinnerNearInput();
     });
+    
 
     this.input.addEventListener("keyup", (ev) => {
       // this must be here, with a keyup listener, because
@@ -308,35 +322,41 @@ class RemoteSearch {
     const inputRect = this.input.getBoundingClientRect();
 
     let left = inputRect.left + window.scrollX;
-    let top = inputRect.bottom + window.scrollY;
+    let top = inputRect.top + window.scrollY;
 
-    const { left: leftCustom, top: topCustom } = this.positionSpinner();
+    if (this.positionSpinnerRightInput) {
+      const inputWidth = inputRect.width;
+      const inputHeight = inputRect.height;
+      left = left + inputWidth - 30;
+      top = top + inputHeight / 5;
+    } else {
+      const { left: leftCustom, top: topCustom } = this.positionSpinner();
+      left = left + leftCustom;
+      top = top + topCustom;
+    }
 
-    left = left + leftCustom;
-    top = top + topCustom;
-
-    // position search result underneath search input
     this.spinner.style.position = "absolute";
     this.spinner.style.left = `${left}px`;
     this.spinner.style.top = `${top}px`;
   }
 
   positionListUnderInput() {
-    // compute search input coordinates
     const inputRect = this.input.getBoundingClientRect();
 
     let left = inputRect.left + window.scrollX;
-    let top = inputRect.bottom + window.scrollY;
+    let top = inputRect.top + window.scrollY;
 
-    // you can adjust these values, to adjust where the
-    // list container will be positioned, based on the search input
-    // left = left - 50 for example means that the list container
-    // will be more at the left side, which is used to create a more
-    // "centered effect" between the search input and search list
-    left = left - 50;
-    top = top + 0;
+    if (this.positionResultListUnderInput) {
+      const inputWidth = inputRect.width;
+      const inputHeight = inputRect.height;
+      left = left;
+      top = top + inputHeight;
+    } else {
+      const { left: leftCustom, top: topCustom } = this.positionResultList();
+      left = left + leftCustom;
+      top = top + topCustom;
+    }
 
-    // position search result underneath search input
     this.listContainer.style.position = "absolute";
     this.listContainer.style.left = `${left}px`;
     this.listContainer.style.top = `${top}px`;
@@ -446,10 +466,16 @@ new RemoteSearch({
   onLoseFocusHideResultList: false,
   // custom function to programmatically position the spinner wherever you want,
   // using as reference point the search input
-  positionSpinner: () => {
-    return {
-      top: -25,
-      left: 240,
-    };
-  },
+  // positionSpinner: () => {
+  //   return {
+  //     top: -25,
+  //     left: 270,
+  //   };
+  // },
+  // positionResultList: () => {
+  //   return {
+  //     top: 0,
+  //     left: 0,
+  //   };
+  // },
 });
