@@ -110,6 +110,13 @@ class RemoteSearch {
       );
     }
 
+        // make the search input not autocomplete,
+    // so you don't see suggestions
+    // this.$input.attr("autocomplete", "off");
+    // // default placeholder
+    // placeholder = placeholder ? placeholder : `Inserisci minimo ${min_len} lettere`;
+    // this.$input.attr("placeholder", placeholder);
+
     this.createListContainerAndList();
 
     // set more instance properties
