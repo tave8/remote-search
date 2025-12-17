@@ -17,9 +17,9 @@
   /* this serves to also give the space for the spinner */
   padding-right: 2.5rem;
   border-radius: 0.3rem;
-  box-shadow: 8px 11px 29px -8px rgba(0, 0, 0, 0.75);
-  -webkit-box-shadow: 8px 11px 29px -8px rgba(0, 0, 0, 0.75);
-  -moz-box-shadow: 8px 11px 29px -8px rgba(0, 0, 0, 0.75);
+  box-shadow: 7px 8px 8px -8px rgba(0, 0, 0, 0.75);
+  -webkit-box-shadow: 7px 8px 8px -8px rgba(0, 0, 0, 0.75);
+  -moz-box-shadow: 7px 8px 8px -8px rgba(0, 0, 0, 0.75);
 }
 
 .remote-search-box input:focus {
@@ -34,13 +34,9 @@
   border: 1px solid lightgray;
   z-index: 9999;
   border-radius: 0.2rem;
-  box-shadow: 9px 10px 7px -7px rgba(0, 0, 0, 0.75);
-  -webkit-box-shadow: 9px 10px 7px -7px rgba(0, 0, 0, 0.75);
-  -moz-box-shadow: 9px 10px 7px -7px rgba(0, 0, 0, 0.75);
-}
-
-.remote-search-box > .list-box.no-border {
-  border: 0;
+  box-shadow: 7px 8px 8px -8px rgba(0, 0, 0, 0.75);
+  -webkit-box-shadow: 7px 8px 8px -8px rgba(0, 0, 0, 0.75);
+  -moz-box-shadow: 7px 8px 8px -8px rgba(0, 0, 0, 0.75);
 }
 
 .remote-search-box > .list-box > ul {
@@ -73,7 +69,7 @@
 .remote-search-box > .input-box > .loader {
   width: 20px;
   height: 20px;
-  border: 3px solid black;
+  border: 3px solid rgb(107, 107, 107);
   border-bottom-color: transparent;
   border-radius: 50%;
   display: inline-block;
@@ -91,5 +87,9 @@
 }
 
 .remote-search-box .loader.hide {
+  display: none;
+}
+
+.remote-search-box .list-box.hide {
   display: none;
 }

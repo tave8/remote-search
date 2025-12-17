@@ -140,7 +140,7 @@ class RemoteSearch {
     // when the user types
     // update the input value, as soon as the user types in
     this.input.addEventListener("keydown", (ev) => {
-      self.showListContainerBorder(false);
+      self.showListContainer(false);
       self.emptyList();
     });
 
@@ -149,7 +149,7 @@ class RemoteSearch {
     if (this.onLoseFocusHideResultList) {
       this.input.addEventListener("focusout", () => {
         self.emptyList();
-        self.showListContainerBorder(false);
+        self.showListContainer(false);
       });
     }
 
@@ -210,7 +210,7 @@ class RemoteSearch {
   refreshList(items, responseData) {
     const self = this;
 
-    this.showListContainerBorder();
+    this.showListContainer();
 
     // there are no items
     if (items.length == 0) {
@@ -247,7 +247,7 @@ class RemoteSearch {
     // empty list
     self.emptyList();
     // hide the list container border
-    this.showListContainerBorder(false);
+    this.showListContainer(false);
     // set the value of the search input as the result item clicked
     self.input.value = this.setCustomItemLabel(item);
     // run the user-provided callback when clicking the item
@@ -291,7 +291,7 @@ class RemoteSearch {
     const listEl = document.createElement("ul");
 
     // initially removes the border
-    listContainerEl.classList.add("list-box", "no-border");
+    listContainerEl.classList.add("list-box", "hide");
 
     listContainerEl.appendChild(listEl);
     searchContainerEl.appendChild(listContainerEl);
@@ -363,12 +363,12 @@ class RemoteSearch {
     this.listContainer.style.top = `${top}px`;
   }
 
-  showListContainerBorder(show = true) {
+  showListContainer(show = true) {
     // removes the no-border class from list container,
     if (show) {
-      this.listContainer.classList.remove("no-border");
+      this.listContainer.classList.remove("hide");
     } else {
-      this.listContainer.classList.add("no-border");
+      this.listContainer.classList.add("hide");
     }
   }
 
