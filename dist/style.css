@@ -36,3 +36,8 @@ main {
 .remote-search-box > .list-box > ul > li:hover {
   background-color: lightblue;
 }
+
+.remote-search-highlight-match {
+  text-decoration: underline;
+  font-weight: bold;
+}

@@ -24,6 +24,7 @@ class RemoteSearch {
     searchQueryParam = "search_term",
     onLoseFocusHideResultList = true,
     setCustomItemLabel,
+    highlightMatch = false,
   }) {
     this.inputSelector = inputSelector;
     this.minLen = minLen;
@@ -37,6 +38,11 @@ class RemoteSearch {
     this.getItemsFromResult = getItemsFromResult;
     this.searchQueryParam = searchQueryParam;
     this.onLoseFocusHideResultList = onLoseFocusHideResultList;
+    this.highlightMatch = highlightMatch;
+    // if no function to set the item label is provided,
+    // then the value of the item label is considered at instance.itemLabel
+    // for example, if itemLabel is "name", then the result list the items
+    // will appear as having their item["name"] value
     this.setCustomItemLabel = setCustomItemLabel
       ? setCustomItemLabel
       : function (item) {
@@ -93,8 +99,17 @@ class RemoteSearch {
 
     this.positionListUnderInput();
 
+    this.input.addEventListener("keyup", (ev) => {
+      // this must be here, with a keyup listener, because
+      // the value must be updated only when the user has finished
+      // typing that char
+      self.inputValue = self.input.value;
+    });
+
     // when the user types
+    // update the input value, as soon as the user types in
     this.input.addEventListener("keydown", (ev) => {
+      self.showListContainerBorder(false);
       self.emptyList();
     });
 
@@ -189,9 +204,18 @@ class RemoteSearch {
     const listItemEl = document.createElement("li");
     // the user can provide a function to customize
     // how each list item will be displayed
-    // if no custom function is provided, only the label
-    // is displayed
-    listItemEl.innerText = this.setCustomItemLabel(item);
+    // if no custom function is provided, the provided itemLabel
+    // value will be used
+    let label = this.setCustomItemLabel(item);
+
+    if (this.highlightMatch) {
+      // in the label, wrap around the matching search term, the bold tags
+      // which means "highlighting"
+      const labelWithHighlight = this.highlightMatchingSearch(label);
+      listItemEl.innerHTML = labelWithHighlight;
+    } else {
+      listItemEl.innerText = label;
+    }
 
     // when user clicks list item
     listItemEl.addEventListener("click", () => {
@@ -213,6 +237,21 @@ class RemoteSearch {
 
     listContainerEl.appendChild(listEl);
     searchContainerEl.appendChild(listContainerEl);
+  }
+
+
+  /**
+   * In the item label, highlight the current input value.
+   * This helps the user see what their input value has matched,
+   * for each list item label.
+   */
+  highlightMatchingSearch(label) {
+    if (!this.inputValue) return label;
+
+    const escaped = this.inputValue.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = new RegExp(escaped, "gi");
+
+    return label.replace(regex, "<span class='remote-search-highlight-match'>$&</span>");
   }
 
   positionListUnderInput() {
@@ -307,17 +346,18 @@ new RemoteSearch({
   },
   // the property that will be displayed to the user in the result item
   itemLabel: "name",
-  // you can customize the item label. this function will be called 
+  // you can customize the item label. this function will be called
   // for each item, passing in the item. you can then set custom logic
   // to display whichever label you want. if this function is not provided,
   // the instance.itemLabel will be used
   setCustomItemLabel: (item) => {
     if (item.email.endsWith("biz")) {
-      return `${item.website} - ${item.name}`
+      return `${item.website} - ${item.name}`;
     }
-    return item.name
+    return item.name;
   },
-
+  // visually mark/highlight the matching search text, in whatever the final item label will be?
+  highlightMatch: true,
   // the search term query string parameter that will contain the value of the input
   searchQueryParam: "term",
   // the query params to append to url before making request
