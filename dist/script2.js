@@ -97,7 +97,10 @@ class RemoteSearch {
     this.listContainer = inputEl.closest(".remote-search-box").querySelector(".list-box");
     this.list = this.listContainer.querySelector("ul");
 
-    this.positionListUnderInput();
+    self.positionListUnderInput();
+    window.addEventListener("resize", () => {
+      self.positionListUnderInput();
+    });
 
     this.input.addEventListener("keyup", (ev) => {
       // this must be here, with a keyup listener, because
@@ -257,12 +260,21 @@ class RemoteSearch {
     // compute search input coordinates
     const inputRect = this.input.getBoundingClientRect();
 
-    // console.log(inputRect)
+    let left = inputRect.left + window.scrollX
+    let top = inputRect.bottom + window.scrollY
+
+    // you can adjust these values, to adjust where the 
+    // list container will be positioned, based on the search input
+    // left = left - 50 for example means that the list container
+    // will be more at the left side, which is used to create a more
+    // "centered effect" between the search input and search list
+    left = left - 50
+    top = top + 0
 
     // position search result underneath search input
     this.listContainer.style.position = "absolute";
-    this.listContainer.style.left = `${inputRect.left + window.scrollX}px`;
-    this.listContainer.style.top = `${inputRect.bottom + window.scrollY}px`;
+    this.listContainer.style.left = `${left}px`;
+    this.listContainer.style.top = `${top}px`;
   }
 
   showListContainerBorder(show = true) {
