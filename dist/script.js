@@ -97,11 +97,16 @@ class RemoteSearch {
     this.listContainer = inputEl.closest(".remote-search-box").querySelector(".list-box");
     this.list = this.listContainer.querySelector("ul");
 
+    this.spinner = this.createSpinner();
+    this.positionSpinnerNearInput();
+
     // initially center the list container,
     // then when window resizes, re-center it again
     self.positionListUnderInput();
+    self.positionSpinnerNearInput()
     window.addEventListener("resize", () => {
       self.positionListUnderInput();
+      self.positionSpinnerNearInput()
     });
 
     this.input.addEventListener("keyup", (ev) => {
@@ -131,7 +136,7 @@ class RemoteSearch {
     new TypingDelayer(
       {
         inputSelector: this.inputSelector,
-        onTypingStopped: this.search,
+        onTypingStopped: this.searchAfterTypingStopped,
       },
       { callerContext: this }
     );
@@ -141,15 +146,22 @@ class RemoteSearch {
    * Use this method to start the search mechanism.
    * The assumption is that this method is called when the user has stopped typing.
    */
-  async search(inputValue, moreInfoAfterWaitTyping) {
+  async searchAfterTypingStopped(inputValue, moreInfoAfterWaitTyping) {
     // check that the input value length is greater or equal the min length
     if (inputValue.length < this.minLen) {
       return;
     }
 
+    // show spinner when user has stopped typing and the typing delay has expired,
+    // right before making the remote request
+    this.showSpinner();
+
     // console.log(inputValue)
     // console.log(this);
     const responseData = await this.doGetRequest();
+
+    // hide spinner right after the remote results have arrived
+    this.showSpinner(false);
 
     const items = this.getItemsFromResult(responseData);
 
@@ -183,6 +195,20 @@ class RemoteSearch {
         self.list.appendChild(listItemEl);
         // console.log(listItemEl);
       });
+    }
+  }
+
+  /**
+   * Show/hide the spinner that is used to show the user that "the data is being loaded".
+   * The spinner should be displayed from time START and hidden on time END, where:
+   * time START = the first moment after (user stops typing + delay)
+   * time END = when remote results have arrived
+   */
+  showSpinner(show = true) {
+    if (show) {
+      this.spinner.classList.remove("hide");
+    } else {
+      this.spinner.classList.add("hide");
     }
   }
 
@@ -244,6 +270,14 @@ class RemoteSearch {
     searchContainerEl.appendChild(listContainerEl);
   }
 
+  createSpinner() {
+    const inputBoxEl = this.input.closest(".remote-search-box").querySelector(".input-box");
+    const spinnerEl = document.createElement("span");
+    spinnerEl.classList.add("loader", "hide");
+    inputBoxEl.appendChild(spinnerEl);
+    return spinnerEl;
+  }
+
   /**
    * In the item label, highlight the current input value.
    * This helps the user see what their input value has matched,
@@ -258,20 +292,35 @@ class RemoteSearch {
     return label.replace(regex, "<span class='remote-search-highlight-match'>$&</span>");
   }
 
+  positionSpinnerNearInput() {
+    const inputRect = this.input.getBoundingClientRect();
+    
+    let left = inputRect.left + window.scrollX;
+    let top = inputRect.bottom + window.scrollY;
+
+    left = left + 130;
+    top = top - 35;
+
+    // position search result underneath search input
+    this.spinner.style.position = "absolute";
+    this.spinner.style.left = `${left}px`;
+    this.spinner.style.top = `${top}px`;
+  }
+
   positionListUnderInput() {
     // compute search input coordinates
     const inputRect = this.input.getBoundingClientRect();
 
-    let left = inputRect.left + window.scrollX
-    let top = inputRect.bottom + window.scrollY
+    let left = inputRect.left + window.scrollX;
+    let top = inputRect.bottom + window.scrollY;
 
-    // you can adjust these values, to adjust where the 
+    // you can adjust these values, to adjust where the
     // list container will be positioned, based on the search input
     // left = left - 50 for example means that the list container
     // will be more at the left side, which is used to create a more
     // "centered effect" between the search input and search list
-    left = left - 50
-    top = top + 0
+    left = left - 50;
+    top = top + 0;
 
     // position search result underneath search input
     this.listContainer.style.position = "absolute";

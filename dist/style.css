@@ -11,6 +11,7 @@ main {
   /* margin: 10px; */
 }
 
+
 .remote-search-box > .list-box {
   max-height: 200px;
   overflow-y: auto;
@@ -46,4 +47,33 @@ main {
 .remote-search-highlight-match {
   text-decoration: underline;
   font-weight: bold;
+}
+
+/* SPINNER when loading results */
+
+.remote-search-box > .input-box > .loader {
+  width: 48px;
+  height: 48px;
+  background: black;
+  display: inline-block;
+  border-radius: 50%;
+  box-sizing: border-box;
+  animation: animloader 1s ease-in infinite;
+  position: absolute;
+}
+
+@keyframes animloader {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+} 
+
+
+.remote-search-box .loader.hide {
+  display: none;
 }
