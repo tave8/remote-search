@@ -239,7 +239,6 @@ class RemoteSearch {
     searchContainerEl.appendChild(listContainerEl);
   }
 
-
   /**
    * In the item label, highlight the current input value.
    * This helps the user see what their input value has matched,

@@ -17,6 +17,7 @@ main {
   position: absolute;
   border: 1px solid lightgray;
   z-index: 9999;
+  border-radius: .2rem;
 }
 
 .remote-search-box > .list-box.no-border {
@@ -26,11 +27,16 @@ main {
 .remote-search-box > .list-box > ul {
   list-style-type: none;
   padding: 0;
+  margin: .3rem .3rem;
 }
 
 .remote-search-box > .list-box > ul > li {
-  padding: 0.5rem;
   cursor: pointer;
+  padding: 0.5rem;
+}
+
+.remote-search-box > .list-box > ul > li:not(:last-child) {
+  /* padding-bottom: 0.7rem; */
 }
 
 .remote-search-box > .list-box > ul > li:hover {
