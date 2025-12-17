@@ -298,8 +298,8 @@ class RemoteSearch {
     let left = inputRect.left + window.scrollX;
     let top = inputRect.bottom + window.scrollY;
 
-    left = left + 130;
-    top = top - 35;
+    left = left + 150;
+    top = top - 20;
 
     // position search result underneath search input
     this.spinner.style.position = "absolute";

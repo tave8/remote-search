@@ -1,5 +1,5 @@
 main {
-    height: 80vh;
+  height: 80vh;
 }
 
 .remote-search-box {
@@ -11,6 +11,12 @@ main {
   /* margin: 10px; */
 }
 
+.remote-search-box input {
+  height: 1.5rem;
+  font-size: 1.2rem;
+  padding-block: .2rem;
+  padding-left: .7rem;
+}
 
 .remote-search-box > .list-box {
   max-height: 200px;
@@ -18,17 +24,17 @@ main {
   position: absolute;
   border: 1px solid lightgray;
   z-index: 9999;
-  border-radius: .2rem;
+  border-radius: 0.2rem;
 }
 
 .remote-search-box > .list-box.no-border {
- border: 0;
+  border: 0;
 }
 
 .remote-search-box > .list-box > ul {
   list-style-type: none;
   padding: 0;
-  margin: .3rem .3rem;
+  margin: 0.3rem 0.3rem;
 }
 
 .remote-search-box > .list-box > ul > li {
@@ -52,27 +58,24 @@ main {
 /* SPINNER when loading results */
 
 .remote-search-box > .input-box > .loader {
-  width: 48px;
-  height: 48px;
-  background: black;
-  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid black;
+  border-bottom-color: transparent;
   border-radius: 50%;
+  display: inline-block;
   box-sizing: border-box;
-  animation: animloader 1s ease-in infinite;
-  position: absolute;
+  animation: rotation 1s linear infinite;
 }
 
-@keyframes animloader {
+@keyframes rotation {
   0% {
-    transform: scale(0);
-    opacity: 1;
+    transform: rotate(0deg);
   }
   100% {
-    transform: scale(1);
-    opacity: 0;
+    transform: rotate(360deg);
   }
-} 
-
+}
 
 .remote-search-box .loader.hide {
   display: none;
