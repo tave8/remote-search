@@ -23,6 +23,7 @@ class RemoteSearch {
     inputPlaceholder,
     searchQueryParam = "search_term",
     onLoseFocusHideResultList = true,
+    setCustomItemLabel,
   }) {
     this.inputSelector = inputSelector;
     this.minLen = minLen;
@@ -36,6 +37,11 @@ class RemoteSearch {
     this.getItemsFromResult = getItemsFromResult;
     this.searchQueryParam = searchQueryParam;
     this.onLoseFocusHideResultList = onLoseFocusHideResultList;
+    this.setCustomItemLabel = setCustomItemLabel
+      ? setCustomItemLabel
+      : function (item) {
+          return item[itemLabel];
+        };
 
     this.input = null;
     this.list = null;
@@ -123,14 +129,14 @@ class RemoteSearch {
 
     // console.log(inputValue)
     // console.log(this);
-    const responseData = await this.getRequest();
+    const responseData = await this.doGetRequest();
 
     const items = this.getItemsFromResult(responseData);
 
     this.refreshList(items, responseData);
   }
 
-  async getRequest() {
+  async doGetRequest() {
     const resp = await fetch(this.getFinalUrl());
 
     if (!resp.ok) {
@@ -140,39 +146,6 @@ class RemoteSearch {
     const data = await resp.json();
 
     return data;
-  }
-
-  getFinalUrl() {
-    let url = "";
-
-    // was the absolute or relative url provided
-    if (this.absoluteUrl) {
-      url = this.absoluteUrl;
-    } else if (this.relativeUrl) {
-      url = this.relativeUrl;
-    } else {
-      throw Error("No url provided.");
-    }
-
-    return `${url}?${this.getUrlQueryStr()}`;
-  }
-
-  getUrlQueryParams() {
-    // the user-provided or default search query param, for example:
-    // search_term, term ecc.
-    // this will result in the query string having that parameter, example:
-    // search_term="mary poppins"
-    const searchQueryParam = {
-      [this.searchQueryParam]: this.input.value,
-    };
-    // the user-provided query params
-    // creating a new object and giving priority to searchQueryParam,
-    // which will override any param in this.urlQueryParams
-    return Object.assign({}, this.urlQueryParams, searchQueryParam);
-  }
-
-  getUrlQueryStr() {
-    return RemoteSearch.paramsToQueryStr(this.getUrlQueryParams());
   }
 
   refreshList(items, responseData) {
@@ -186,10 +159,7 @@ class RemoteSearch {
     // there's more than one item
     else {
       items.forEach((item) => {
-        // the label of each item. this will be shown
-        // to the user in the UI list item
-        const label = item[this.itemLabel];
-        const listItemEl = self.createListItem(label, item);
+        const listItemEl = self.createListItem(item);
         self.list.appendChild(listItemEl);
         // console.log(listItemEl);
       });
@@ -199,28 +169,33 @@ class RemoteSearch {
   /**
    * When a result list item gets clicked.
    */
-  handleClickItem(label, item) {
+  handleClickItem(item) {
     const self = this;
     // empty list
     self.emptyList();
     // hide the list container border
     this.showListContainerBorder(false);
     // set the value of the search input as the result item clicked
-    self.input.value = label;
+    self.input.value = this.setCustomItemLabel(item);
     // run the user-provided callback when clicking the item
     self.onClickItem(item);
   }
-  
 
-  createListItem(label, item) {
+  /**
+   * Creates the individual result list item.
+   */
+  createListItem(item) {
     const self = this;
     const listItemEl = document.createElement("li");
-    // the list item text
-    listItemEl.innerText = label;
+    // the user can provide a function to customize
+    // how each list item will be displayed
+    // if no custom function is provided, only the label
+    // is displayed
+    listItemEl.innerText = this.setCustomItemLabel(item);
 
     // when user clicks list item
     listItemEl.addEventListener("click", () => {
-      self.handleClickItem.bind(self)(label, item);
+      self.handleClickItem.bind(self)(item);
     });
 
     return listItemEl;
@@ -265,6 +240,39 @@ class RemoteSearch {
     this.list.innerHTML = "";
   }
 
+  getFinalUrl() {
+    let url = "";
+
+    // was the absolute or relative url provided
+    if (this.absoluteUrl) {
+      url = this.absoluteUrl;
+    } else if (this.relativeUrl) {
+      url = this.relativeUrl;
+    } else {
+      throw Error("No url provided.");
+    }
+
+    return `${url}?${this.getUrlQueryStr()}`;
+  }
+
+  getUrlQueryParams() {
+    // the user-provided or default search query param, for example:
+    // search_term, term ecc.
+    // this will result in the query string having that parameter, example:
+    // search_term="mary poppins"
+    const searchQueryParam = {
+      [this.searchQueryParam]: this.input.value,
+    };
+    // the user-provided query params
+    // creating a new object and giving priority to searchQueryParam,
+    // which will override any param in this.urlQueryParams
+    return Object.assign({}, this.urlQueryParams, searchQueryParam);
+  }
+
+  getUrlQueryStr() {
+    return RemoteSearch.paramsToQueryStr(this.getUrlQueryParams());
+  }
+
   static paramsToQueryStr(params) {
     return new URLSearchParams(params).toString();
   }
@@ -299,6 +307,17 @@ new RemoteSearch({
   },
   // the property that will be displayed to the user in the result item
   itemLabel: "name",
+  // you can customize the item label. this function will be called 
+  // for each item, passing in the item. you can then set custom logic
+  // to display whichever label you want. if this function is not provided,
+  // the instance.itemLabel will be used
+  setCustomItemLabel: (item) => {
+    if (item.email.endsWith("biz")) {
+      return `${item.website} - ${item.name}`
+    }
+    return item.name
+  },
+
   // the search term query string parameter that will contain the value of the input
   searchQueryParam: "term",
   // the query params to append to url before making request
