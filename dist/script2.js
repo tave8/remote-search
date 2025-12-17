@@ -63,6 +63,8 @@ class RemoteSearch {
    * Called only once on instantiation.
    */
   init() {
+    const self = this
+
     // check that the provided input id resolves to a real html node
     const inputEl = document.querySelector(this.inputSelector);
     const existsInput = inputEl instanceof HTMLElement;
@@ -87,8 +89,16 @@ class RemoteSearch {
 
     // when the user types
     this.input.addEventListener("keydown", (ev) => {
-      this.emptyList();
+      self.emptyList();
     });
+
+    // configure: if input loses focus, should the result list 
+    // stay or go away?
+    if (this.onLoseFocusHideResultList) {
+      this.input.addEventListener("focusout", () => {
+        self.emptyList()
+      })
+    }
 
     // fire the search method after delay from when user stops typing
     new TypingDelayer(
