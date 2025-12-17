@@ -1,3 +1,9 @@
+// TO IMPLEMENT
+// when user clicks out of list input, or when input loses focus, list disappears
+// on window resize, set a timeout mechanism with clear last timeout and set new timeout, to reposition the list underneath the input
+// when click item, fill an input value
+// when click item,
+
 // Only array of objects are accepted.
 // So [
 // {myLabel: "value"}
@@ -16,6 +22,7 @@ class RemoteSearch {
     urlQueryParams = {},
     inputPlaceholder,
     searchQueryParam = "search_term",
+    onLoseFocusHideResultList = true,
   }) {
     this.inputSelector = inputSelector;
     this.minLen = minLen;
@@ -28,11 +35,13 @@ class RemoteSearch {
     this.inputPlaceholder = inputPlaceholder;
     this.getItemsFromResult = getItemsFromResult;
     this.searchQueryParam = searchQueryParam;
+    this.onLoseFocusHideResultList = onLoseFocusHideResultList;
 
     this.input = null;
     this.list = null;
+    this.listContainer = null
 
-    const self = this;
+    const self = this
 
     // CHECKS
     // the TypingDelayer library must exist
@@ -40,55 +49,55 @@ class RemoteSearch {
       throw Error("Must include 'TypingDelayer' library, for this class to work.");
     }
 
-    // start the core typing delay mechanism
-    function start() {
-      // check that the provided input id resolves to a real html node
-      const inputEl = document.querySelector(inputSelector);
-      const existsInput = inputEl instanceof HTMLElement;
-      // console.log(inputSelector);
-
-      if (!existsInput) {
-        throw Error(
-          `Error in "RemoteSearch" library. ` +
-            `The provided '${inputSelector}' CSS selector, to select the input, resolves ` +
-            `to a html node that does not exist.`
-        );
-      }
-
-      self.createListContainerAndList();
-
-      // set more instance properties
-      self.input = inputEl;
-      self.listContainer = inputEl.closest(".remote-search-box").querySelector(".list-box")
-      self.list = self.listContainer.querySelector("ul");
-
-      self.positionListUnderInput();
-
-      // when the user types
-      self.input.addEventListener("keydown", (ev) => {
-        self.emptyList();
-      });
-
-      // fire the search method after delay from when user stops typing
-      new TypingDelayer(
-        {
-          inputSelector: self.inputSelector,
-          onTypingStopped: self.search,
-        },
-        { callerContext: self }
-      );
-    }
-
     // if the document was loaded
     if (document.readyState == "complete") {
-      start();
+      self.init();
     }
     // before the document is loaded
     else {
-      window.addEventListener("load", () => {
-        start();
-      });
+      window.addEventListener("load", self.init.bind(self));
     }
+  }
+
+  /**
+   * Called only once on instantiation.
+   */
+  init() {
+    // check that the provided input id resolves to a real html node
+    const inputEl = document.querySelector(this.inputSelector);
+    const existsInput = inputEl instanceof HTMLElement;
+    // console.log(inputSelector);
+
+    if (!existsInput) {
+      throw Error(
+        `Error in "RemoteSearch" library. ` +
+          `The provided '${this.inputSelector}' CSS selector, to select the input, resolves ` +
+          `to a html node that does not exist.`
+      );
+    }
+
+    this.createListContainerAndList();
+
+    // set more instance properties
+    this.input = inputEl;
+    this.listContainer = inputEl.closest(".remote-search-box").querySelector(".list-box");
+    this.list = this.listContainer.querySelector("ul");
+
+    this.positionListUnderInput();
+
+    // when the user types
+    this.input.addEventListener("keydown", (ev) => {
+      this.emptyList();
+    });
+
+    // fire the search method after delay from when user stops typing
+    new TypingDelayer(
+      {
+        inputSelector: this.inputSelector,
+        onTypingStopped: this.search,
+      },
+      { callerContext: this }
+    );
   }
 
   /**
@@ -263,4 +272,6 @@ new RemoteSearch({
   },
   // the input placeholder, which can be dynamic as well
   inputPlaceholder: "Search all (min _N_ required)",
+  // when the focus is lost on the search input, hide the result list?
+  onLoseFocusHideResultList: true,
 });
