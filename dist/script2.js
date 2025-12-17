@@ -196,7 +196,21 @@ class RemoteSearch {
     }
   }
 
-  handleClickItem() {}
+  /**
+   * When a result list item gets clicked.
+   */
+  handleClickItem(label, item) {
+    const self = this;
+    // empty list
+    self.emptyList();
+    // hide the list container border
+    this.showListContainerBorder(false);
+    // set the value of the search input as the result item clicked
+    self.input.value = label;
+    // run the user-provided callback when clicking the item
+    self.onClickItem(item);
+  }
+  
 
   createListItem(label, item) {
     const self = this;
@@ -206,15 +220,9 @@ class RemoteSearch {
 
     // when user clicks list item
     listItemEl.addEventListener("click", () => {
-      // empty list
-      self.emptyList();
-      // hide the list container border
-      this.showListContainerBorder(false);
-      // set the value of the search input as the result item clicked
-      self.input.value = label;
-      // run the user-provided callback when clicking the item
-      self.onClickItem(item);
+      self.handleClickItem.bind(self)(label, item);
     });
+
     return listItemEl;
   }
 
