@@ -97,6 +97,8 @@ class RemoteSearch {
     this.listContainer = inputEl.closest(".remote-search-box").querySelector(".list-box");
     this.list = this.listContainer.querySelector("ul");
 
+    // initially center the list container,
+    // then when window resizes, re-center it again
     self.positionListUnderInput();
     window.addEventListener("resize", () => {
       self.positionListUnderInput();
