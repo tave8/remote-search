@@ -16,7 +16,7 @@ class RemoteSearch {
     absoluteUrl,
     relativeUrl,
     onClickItem,
-    onGetResult,
+    onGetResults,
     getItemsFromResult,
     itemLabel,
     urlQueryParams = {},
@@ -35,7 +35,7 @@ class RemoteSearch {
     this.absoluteUrl = absoluteUrl;
     this.relativeUrl = relativeUrl;
     this.onClickItem = onClickItem;
-    this.onGetResult = onGetResult;
+    this.onGetResults = onGetResults;
     this.itemLabel = itemLabel;
     this.urlQueryParams = urlQueryParams;
     this.inputPlaceholder = inputPlaceholder;
@@ -123,18 +123,17 @@ class RemoteSearch {
 
     this.spinner = this.createSpinner();
     this.positionSpinnerNearInput();
-
+    
+    
     // initially center the list container,
     // then when window resizes, re-center it again
     self.positionListUnderInput();
     self.positionSpinnerNearInput();
-
     window.addEventListener("resize", () => {
       self.positionListUnderInput();
       self.positionSpinnerNearInput();
     });
     
-
     this.input.addEventListener("keyup", (ev) => {
       // this must be here, with a keyup listener, because
       // the value must be updated only when the user has finished
@@ -195,15 +194,21 @@ class RemoteSearch {
   }
 
   async doGetRequest() {
-    const resp = await fetch(this.getFinalUrl());
+    const respObj = await fetch(this.getFinalUrl());
 
-    if (!resp.ok) {
+    if (!respObj.ok) {
       throw new Error("errore nei server");
     }
 
-    const data = await resp.json();
+    const responseData = await respObj.json();
 
-    return data;
+    // fire the user-defined callback as soon as data is arrived
+    // and available
+    if(this.onGetResults) {
+      this.onGetResults(responseData, respObj)
+    }
+
+    return responseData;
   }
 
   refreshList(items, responseData) {
@@ -303,6 +308,7 @@ class RemoteSearch {
     inputBoxEl.appendChild(spinnerEl);
     return spinnerEl;
   }
+
 
   /**
    * In the item label, highlight the current input value.
@@ -426,7 +432,7 @@ new RemoteSearch({
   absoluteUrl: "https://jsonplaceholder.typicode.com/users",
   // when user clicks the individual result item
   onClickItem: async (item) => {
-    console.log(item);
+    console.log("clicked item", item);
   },
   // when the result is received from the server, return the actual items (list of objects)
   getItemsFromResult: (responseData) => {
@@ -437,8 +443,8 @@ new RemoteSearch({
     return responseData;
   },
   // when the results arrive to the client, from the server
-  onGetResult: async (respBody) => {
-    console.log(respBody);
+  onGetResults: async (responseData, responseObj) => {
+    console.log("results arrived", responseData, responseObj);
   },
   // the property that will be displayed to the user in the result item
   itemLabel: "name",
