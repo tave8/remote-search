@@ -11,7 +11,7 @@ new RemoteSearch({
   // url to make request to
   absoluteUrl: "https://mockup-db.giutav.workers.dev/people",
   // when user clicks the individual result item
-  onClickItem: async (item) => {
+  onClickItem: (item) => {
     console.log("clicked item", item);
   },
   // when the result is received from the server, return the actual items (list of objects)

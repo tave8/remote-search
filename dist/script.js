@@ -360,10 +360,11 @@ class RemoteSearch {
 
     let left = inputRect.left + window.scrollX;
     let top = inputRect.top + window.scrollY;
+    
+    const inputWidth = inputRect.width;
+    const inputHeight = inputRect.height;
 
     if (this.positionSpinnerRightInput) {
-      const inputWidth = inputRect.width;
-      const inputHeight = inputRect.height;
       left = left + inputWidth - 30;
       top = top + inputHeight / 5;
     } else {
@@ -383,9 +384,10 @@ class RemoteSearch {
     let left = inputRect.left + window.scrollX;
     let top = inputRect.top + window.scrollY;
 
+    const inputWidth = inputRect.width;
+    const inputHeight = inputRect.height;
+
     if (this.positionResultListUnderInput) {
-      const inputWidth = inputRect.width;
-      const inputHeight = inputRect.height;
       left = left;
       top = top + inputHeight;
     } else {
@@ -397,6 +399,9 @@ class RemoteSearch {
     this.listContainer.style.position = "absolute";
     this.listContainer.style.left = `${left}px`;
     this.listContainer.style.top = `${top}px`;
+
+    // also make sure the result list container's width is roughly like the input's width
+    this.listContainer.style.width = `${inputWidth}px`
   }
 
   showListContainer(show = true) {
