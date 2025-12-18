@@ -52,9 +52,9 @@ class RemoteSearch {
     this.setCustomItemLabel = setCustomItemLabel
       ? setCustomItemLabel
       : function (item) {
-          const existsItemLabel = item[itemLabel] !== null && item[itemLabel] !== undefined
+          const existsItemLabel = item[itemLabel] !== null && item[itemLabel] !== undefined;
           if (!existsItemLabel) {
-            throw Error(`The property '${itemLabel}' does not exist on the item '${JSON.stringify(item)}'`)
+            throw Error(`The property '${itemLabel}' does not exist on the item '${JSON.stringify(item)}'`);
           }
           return item[itemLabel];
         };
@@ -223,15 +223,18 @@ class RemoteSearch {
 
     // there are no items
     if (items.length == 0) {
+      self.emptyList();
+      const noResultItemEl = self.createNoResultItem();
+      self.list.appendChild(noResultItemEl);
+      return;
     }
+
     // there's more than one item
-    else {
-      items.forEach((item) => {
-        const listItemEl = self.createListItem(item);
-        self.list.appendChild(listItemEl);
-        // console.log(listItemEl);
-      });
-    }
+    items.forEach((item) => {
+      const listItemEl = self.createListItem(item);
+      self.list.appendChild(listItemEl);
+      // console.log(listItemEl);
+    });
   }
 
   /**
@@ -288,6 +291,30 @@ class RemoteSearch {
     listItemEl.addEventListener("click", () => {
       self.handleClickItem.bind(self)(item);
     });
+
+    return listItemEl;
+  }
+
+  /**
+   * The result list item that contains "no result"
+   */
+  createNoResultItem() {
+    const self = this;
+
+    const listItemEl = document.createElement("li");
+    const noResultText = "no results"
+    listItemEl.innerText = noResultText;
+
+    // clear previous timeout
+    clearTimeout(this.lastNoResultItemTimeout)
+
+    function onTimeoutExpire() {
+      self.emptyList()
+      self.showListContainer(false)
+    }
+
+    // set new timeout
+    this.lastNoResultItemTimeout = setTimeout(onTimeoutExpire, 2000)
 
     return listItemEl;
   }
