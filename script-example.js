@@ -3,13 +3,13 @@
 
 new RemoteSearch({
   // where the user types
-  inputSelector: ".remote-search-box > .input-box > input",
+  inputSelector: "#box1.remote-search-box > .input-box > input",
   // where results are shown
   // listSelector: ".box-search > .list",
   // min char number to trigger remote search
   minLen: 3,
   // url to make request to
-  absoluteUrl: "https://mockup-db.giutav.workers.dev",
+  absoluteUrl: "https://mockup-db.giutav.workers.dev/people",
   // when user clicks the individual result item
   onClickItem: async (item) => {
     console.log("clicked item", item);
@@ -27,21 +27,21 @@ new RemoteSearch({
     console.log("results arrived", responseData, responseObj);
   },
   // the property that will be displayed to the user in the result item
-  itemLabel: "name",
+  // itemLabel: "name",
   // you can customize the item label. this function will be called
   // for each item, passing in the item. you can then set custom logic
   // to display whichever label you want. if this function is not provided,
   // the instance.itemLabel will be used
   setCustomItemLabel: (item) => {
-    return item.name
+    return item.firstname + " " + item.lastname
   },
   // visually mark/highlight the matching search text, in whatever the final item label will be?
   highlightMatch: true,
   // the search term query string parameter that will contain the value of the input
-  searchQueryParam: "search_term",
+  searchQueryParam: "q",
   // the query params to append to url before making request
   urlQueryParams: {
-    x: 2,
+    // myParam: "some value",
   },
   // the input placeholder, which can be dynamic as well
   // inputPlaceholder: "Search this field",

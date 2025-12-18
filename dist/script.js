@@ -21,7 +21,7 @@ class RemoteSearch {
     itemLabel,
     urlQueryParams = {},
     inputPlaceholder,
-    searchQueryParam = "search_term",
+    searchQueryParam = "q",
     onLoseFocusHideResultList = true,
     setCustomItemLabel,
     highlightMatch = false,
@@ -52,6 +52,10 @@ class RemoteSearch {
     this.setCustomItemLabel = setCustomItemLabel
       ? setCustomItemLabel
       : function (item) {
+          const existsItemLabel = item[itemLabel] !== null && item[itemLabel] !== undefined
+          if (!existsItemLabel) {
+            throw Error(`The property '${itemLabel}' does not exist on the item '${JSON.stringify(item)}'`)
+          }
           return item[itemLabel];
         };
 
