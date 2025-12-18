@@ -51,8 +51,17 @@ CSS
 <link rel="stylesheet" href="https://remote-search.giutav.workers.dev/style.css"/>
 ```
 
-
 ### Configuration
+
+A backend with mockup data, which I myself have created, can be found at https://mockup-db.giutav.workers.dev/people
+
+The query string parameter that contains the user input, at any time, is ```q```
+
+So the url to get data from will be something like
+
+```
+https://mockup-db.giutav.workers.dev/people?q=maria
+```
 
 Remote Search can be configured to fit the app's needs.
 
@@ -150,3 +159,11 @@ new RemoteSearch({
 // }
 
 ```
+
+### Conventions & Defaults
+
+- ```q``` is the url query string parameter that contains user input. Example: ```mydomain.com/users?q=john```
+
+- The search result list gets ... on losing the search input focus
+
+
