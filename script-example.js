@@ -9,7 +9,7 @@ new RemoteSearch({
   // min char number to trigger remote search
   minLen: 3,
   // url to make request to
-  absoluteUrl: "https://jsonplaceholder.typicode.com/users",
+  absoluteUrl: "https://mockup-db.giutav.workers.dev",
   // when user clicks the individual result item
   onClickItem: async (item) => {
     console.log("clicked item", item);
@@ -20,7 +20,7 @@ new RemoteSearch({
     // so there's no need to search any further
     // if instead the items are found in the json.items property, you must
     // specify that here with return json.items
-    return responseData;
+    return responseData.items;
   },
   // when the results arrive to the client, from the server
   onGetResults: async (responseData, responseObj) => {
@@ -33,15 +33,12 @@ new RemoteSearch({
   // to display whichever label you want. if this function is not provided,
   // the instance.itemLabel will be used
   setCustomItemLabel: (item) => {
-    if (item.email.endsWith("biz")) {
-      return `${item.website} - ${item.name}`;
-    }
-    return item.name;
+    return item.name
   },
   // visually mark/highlight the matching search text, in whatever the final item label will be?
   highlightMatch: true,
   // the search term query string parameter that will contain the value of the input
-  searchQueryParam: "term",
+  searchQueryParam: "search_term",
   // the query params to append to url before making request
   urlQueryParams: {
     x: 2,

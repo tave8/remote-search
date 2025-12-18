@@ -1,3 +1,8 @@
+// TODO:
+// list container must be the same widht
+// each list item must be able to wrap the text, if text flows to next line
+// when no items are shown, show "no items" in result list
+
 /**
  * Remote search, made easy.
  * Configure your search in a few lines, so you can focus on your app's core logic.
