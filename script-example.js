@@ -1,4 +1,3 @@
-
 // USAGE: working example
 
 new RemoteSearch({
@@ -33,7 +32,7 @@ new RemoteSearch({
   // to display whichever label you want. if this function is not provided,
   // the instance.itemLabel will be used
   setCustomItemLabel: (item) => {
-    return item.firstname + " " + item.lastname
+    return item.firstname + " " + item.lastname;
   },
   // visually mark/highlight the matching search text, in whatever the final item label will be?
   highlightMatch: true,
@@ -61,11 +60,11 @@ new RemoteSearch({
   //     left: 0,
   //   };
   // },
+  // in case no results are found, what to do
+  onNoResultFound: () => {
+    console.log("no results found");
+  },
 });
-
-
-
-
 
 /**
  * Async versione of setTimeout
@@ -77,13 +76,12 @@ new RemoteSearch({
 //     }, delay));
 // };
 
-
 // async function main () {
 //     await doSomethingAsync()
 //     console.log("done")
 // }
 
-// main() 
+// main()
 
 // async function doSomethingAsync() {
 //     await setTimeoutAsync(() => {

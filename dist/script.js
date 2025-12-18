@@ -17,6 +17,7 @@ class RemoteSearch {
     relativeUrl,
     onClickItem,
     onGetResults,
+    onNoResultFound,
     getItemsFromResult,
     itemLabel,
     urlQueryParams = {},
@@ -36,6 +37,7 @@ class RemoteSearch {
     this.relativeUrl = relativeUrl;
     this.onClickItem = onClickItem;
     this.onGetResults = onGetResults;
+    this.onNoResultFound = onNoResultFound
     this.itemLabel = itemLabel;
     this.urlQueryParams = urlQueryParams;
     this.inputPlaceholder = inputPlaceholder ? inputPlaceholder : "search...";
@@ -223,6 +225,10 @@ class RemoteSearch {
 
     // there are no items
     if (items.length == 0) {
+      // when no items are found, you could trigger a user-provided callback
+      if(this.onNoResultFound) {
+        this.onNoResultFound()
+      }
       self.emptyList();
       const noResultItemEl = self.createNoResultItem();
       self.list.appendChild(noResultItemEl);
@@ -360,7 +366,7 @@ class RemoteSearch {
 
     let left = inputRect.left + window.scrollX;
     let top = inputRect.top + window.scrollY;
-    
+
     const inputWidth = inputRect.width;
     const inputHeight = inputRect.height;
 
